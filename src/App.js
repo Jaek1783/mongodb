@@ -4,11 +4,11 @@ const bodyParser = require('body-parser');
 const {User} = require('./Models/Users');
 const app = express();// app이라는 상수로 express code를 작성함;
 const port = 3000; // 포트번호는 3000;
-
+const config = require('./Config/key')
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
 
-const mongodbURI = 'mongodb+srv://admin:zVuEc4th5SNRrQFW@cluster0.pse9wil.mongodb.net/test';
+const mongodbURI = config.mongoURI;
 const server = async ()=>{
     try{
       await mongoose.connect(mongodbURI);

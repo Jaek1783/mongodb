@@ -13,6 +13,10 @@ const UserSchema = new mongoose.Schema({
         trim:true, //email의 빈칸을 없애줌
         unique: 1
     },
+    password:{
+        type:Number,
+        required:true
+    },
     role:{ // role :1 => 관리자, role :0 => user
         type:Number,
         default:0

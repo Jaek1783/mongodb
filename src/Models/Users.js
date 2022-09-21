@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const saltRounds = 10;
 //스키마를 생성한다.
 //스키마에 생성 키, 벨류, 입력형식 등을 입력해준다.
@@ -50,5 +51,26 @@ UserSchema.pre('save', function(next){
     }
 }); 
 
+UserSchema.methods.comparePassword = function(plainPassword, callback){
+    //plainPassword 1234567 = 암호화된 비밀번호 ?
+    bcrypt.compare(plainPassword, this.password, function(err, isMatch){
+        if(err){
+            return callback(err)
+        }else{
+            callback(null,isMatch)
+        }
+    });
+};
+
+UserSchema.methods.generateToken = function(cb){
+    let user = this;
+    //jsonwebtoken을 이용해 token 생성하기
+   let token =  jwt.sign(user._id.toHexString(), 'secretToken');
+   user.token = token;
+   user.save(function(err,user){
+    if(err) return cb(err)
+    cb(null,user);
+   });
+}
 const User = mongoose.model('User',UserSchema);
 module.exports = {User};

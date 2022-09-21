@@ -2,6 +2,7 @@ const express = require("express"); // express를 사용함 code;
 const mongoose = require("mongoose");
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const {auth} = require('./Middleware/auth');
 const {User} = require('./Models/Users');
 const app = express();// app이라는 상수로 express code를 작성함;
 const port = 3000; // 포트번호는 3000;
@@ -18,10 +19,10 @@ const server = ()=>{
         app.get('/',(req,res)=>{
             res.send('hello world');
         });
-        app.get('/register', (req,res)=>{
+        app.get('/api/user/register', (req,res)=>{
             res.send('user');
         });
-        app.post('/register',(req,res)=>{
+        app.post('/api/user/register',(req,res)=>{
                 //회원가입 시 필요한 정보들을 client에서 가져오면
                 //그것들을 데이터베이스에 넣어준다.  
                 const user = new User(req.body);
@@ -35,7 +36,7 @@ const server = ()=>{
                 }); 
                 // return res.send({user});
         });
-        app.post('/login',(req,res)=>{
+        app.post('/api/user/login',(req,res)=>{
             //요청된 이메일이 DB에 있는 지 확인
             User.findOne({email:req.body.email}, (err,user)=>{
                 if(!user){
@@ -52,6 +53,7 @@ const server = ()=>{
                                                 message:"비밀번호가 틀렸습니다."
                             });
                         }
+            //Token 생성                
                     user.generateToken((err, user) => {
                             if(err) return res.status(400).send(err);
                                 res.cookie('token',user.token)
@@ -61,13 +63,20 @@ const server = ()=>{
                     } )
                 }
             });
-
-            //Token 생성
         });
+
+        app.get('/api/user/auth',auth,(req,res)=>{
+            res.status(200).json({
+                _id:req.user._id,
+                isAdmin: req.user.role === 0 ? false : true,
+                email:req.email
+            })
+        });
+
         app.listen(port, (req,res)=>{
             console.log(port+"번으로 서버가 켜졌습니다")
         });
-}
+};
 
 server();
 

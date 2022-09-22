@@ -19,10 +19,8 @@ const server = ()=>{
         app.get('/',(req,res)=>{
             res.send('hello world');
         });
-        app.get('/api/user/register', (req,res)=>{
-            res.send('user');
-        });
-        app.post('/api/user/register',(req,res)=>{
+
+        app.post('/api/users/register',(req,res)=>{
                 //회원가입 시 필요한 정보들을 client에서 가져오면
                 //그것들을 데이터베이스에 넣어준다.  
                 const user = new User(req.body);
@@ -36,7 +34,7 @@ const server = ()=>{
                 }); 
                 // return res.send({user});
         });
-        app.post('/api/user/login',(req,res)=>{
+        app.post('/api/users/login',(req,res)=>{
             //요청된 이메일이 DB에 있는 지 확인
             User.findOne({email:req.body.email}, (err,user)=>{
                 if(!user){
@@ -56,7 +54,7 @@ const server = ()=>{
             //Token 생성                
                     user.generateToken((err, user) => {
                             if(err) return res.status(400).send(err);
-                                res.cookie('token',user.token)
+                                res.cookie('x_auth',user.token)
                                 .status(200)
                                 .json({loginSuccess:true, userId:user._id});
                             });
@@ -64,14 +62,28 @@ const server = ()=>{
                 }
             });
         });
+        app.get('/api/users/login',(req,res)=>{
+            res.send(req.body);
+        });
 
-        app.get('/api/user/auth',auth,(req,res)=>{
+        app.get('/api/users/auth',auth,(req,res)=>{
             res.status(200).json({
                 _id:req.user._id,
                 isAdmin: req.user.role === 0 ? false : true,
                 email:req.email
             })
         });
+
+        app.get('/api/users/logout', auth, (req,res)=>{
+            User.findOneAndUpdate({_id:req.user._id},
+              {token: ""},
+              (err,user)=>{
+                if(err) return res.json({success:false, err});
+                return res.status(200).send({
+                    success:true
+                });
+              });
+        })
 
         app.listen(port, (req,res)=>{
             console.log(port+"번으로 서버가 켜졌습니다")
